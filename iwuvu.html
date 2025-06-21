@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Letter For My Wuv</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(ellipse, #fce4ec, #f0b8d0);
+            overflow: hidden;
+            position: relative;
+            margin: 0;
+            padding: 0;
+            touch-action: manipulation;
+            /* Ayuda a prevenir comportamientos de scroll/zoom no deseados */
+        }
+
+        /* KEYFRAMES PARA EL PULSO DEL TEXTO */
+        @keyframes pulseTexto {
+            0% {
+                transform: translateX(-50%) scale(1.03);
+            }
+
+            100% {
+                transform: translateX(-50%) scale(1);
+            }
+        }
+
+        .texto-instruccion {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.3em;
+            color: #E57677;
+            transition: opacity 0.5s ease;
+            z-index: 5;
+            text-align: center;
+            width: 90%;
+            max-width: 320px;
+            font-weight: 600;
+            animation: pulseTexto 2s infinite alternate;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .texto-instruccion.oculto {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .contenedor-principal {
+            position: relative;
+            width: min(300px, 80vw);
+            height: min(200px, 50vh);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            tap-highlight-color: transparent;
+        }
+
+        .sobre-contenedor {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease;
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.05);
+            }
+        }
+
+        .sobre {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffcdd2, #f48fb1);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sobre::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 100px 150px 0 150px;
+            border-color: #f48fb1 transparent transparent transparent;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 2;
+        }
+
+        .sobre-contenedor.oculto .sobre::before {
+            transform: translateX(-50%) translateY(-120%);
+        }
+
+        .sello {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #e57373, #c62828);
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 28px;
+            transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 3;
+        }
+
+        .sello::before {
+            content: '♥';
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .sello.abierto {
+            transform: translateX(-50%) rotate(720deg) scale(0);
+            opacity: 0;
+        }
+
+        .carta-contenedor {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 85vw;
+            height: 88vh;
+            background: linear-gradient(to bottom, #fff, #f8f9fa);
+            z-index: 1000;
+            transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            opacity: 0;
+            transform: translate(-50%, -50%)scale(0.8);
+            display: flex;
+            flex-direction: column;
+            font-family: Georgia, serif;
+            overflow: hidden;
+            pointer-events: none;
+            /* Inicia sin poder interactuar */
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .carta-contenedor.visible {
+            transform: translate(-50%, -50%)scale(1);
+            opacity: 1;
+            pointer-events: all;
+            /* Habilita interacción cuando es visible */
+        }
+
+        .encabezado-carta {
+            padding: 20px 20px 10px 20px;
+            background: linear-gradient(135deg, #E3E6FF, #f8f9fa);
+            border-bottom: 1px solid #e9ecef;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .encabezado-carta h2 {
+            margin: 0;
+            color: #495057;
+            font-size: 1.3em;
+            font-weight: 300;
+        }
+
+        .contenido-carta {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            /* Permite el scroll vertical */
+            text-align: left;
+            line-height: 1.7;
+            font-size: 0.95em;
+            color: #343a40;
+            -webkit-overflow-scrolling: touch;
+            /* Mejora el scroll en iOS */
+            touch-action: pan-y;
+            /* Permite el scroll vertical, previene otros gestos */
+        }
+
+        .contenido-carta p {
+            margin-bottom: 15px;
+        }
+
+        .contenido-carta p:first-child {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .controles-carta {
+            flex-shrink: 0;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .seccion-audio {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .controles-audio {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .boton-audio {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+            min-width: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .boton-audio.pausar {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
+        }
+
+        .boton-audio.reanudar {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+        }
+
+        .boton-audio:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 4px rgba(40, 167, 69, 0.4);
+        }
+
+        .boton-audio:disabled {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .boton-cerrar {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+            margin-top: 10px;
+        }
+
+        .boton-cerrar:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 4px rgba(220, 53, 69, 0.4);
+        }
+
+        .sobre-contenedor.oculto {
+            transform: scale(0.1);
+            opacity: 0;
+        }
+
+        .estado-audio {
+            text-align: center;
+            font-size: 0.85em;
+            color: #6c757d;
+            padding: 5px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            min-height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .estado-audio.error {
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+        }
+
+        .estado-audio.success {
+            color: #28a745;
+            background: rgba(40, 167, 69, 0.1);
+        }
+
+        /* Estilos para la barra de tiempo */
+        .barra-tiempo-contenedor {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px 15px;
+            border-radius: 25px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .barra-tiempo {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.2s ease;
+            cursor: pointer;
+        }
+
+        .barra-tiempo::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #f48fb1;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 3px solid #fff;
+        }
+
+        .barra-tiempo::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #f48fb1;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border: 3px solid #fff;
+        }
+
+        .tiempo-actual,
+        .duracion-total {
+            font-size: 0.8em;
+            color: #495057;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        /* Estilos para el control de volumen */
+        .control-volumen {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 8px 15px;
+            border-radius: 25px;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-volumen label {
+            font-size: 0.85em;
+            color: #495057;
+            white-space: nowrap;
+        }
+
+        .volumen-slider {
+            flex-grow: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volumen-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #20c997;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .volumen-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #20c997;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+
+
+        /* Mejorar scroll en móviles */
+        .contenido-carta::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .contenido-carta::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+
+        .contenido-carta::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Responsive */
+        @media (max-height: 600px) {
+            .contenido-carta {
+                font-size: 0.9em;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .contenido-carta {
+                font-size: 0.85em;
+                padding: 15px;
+            }
+
+            .controles-carta {
+                padding: 10px 15px;
+            }
+
+            .boton-audio {
+                min-width: unset;
+                flex: 1;
+            }
+        }
+
+        /* Prevenir selección de texto */
+        .sobre-contenedor,
+        .sello,
+        .contenedor-principal {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="texto-instruccion" id="textoInstruccion">
+        Hawo dear husband, omg you've received a letter! 💌
+    </div>
+
+    <div class="contenedor-principal" id="contenedorPrincipal">
+        <div class="sobre-contenedor" id="sobreContenedor">
+            <div class="sobre">
+                <div class="sello" id="sello"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="carta-contenedor" id="cartaContenedor">
+        <div class="encabezado-carta">
+            <h2>Happy 6 Months Lov! ✨</h2>
+        </div>
+
+        <div class="contenido-carta">
+            <p>Dear future husband,</p>
+
+            <p>This exact moment but six months ago we started dating! Whoa, so much time wtfrick. As I've always let you know from that day on I feel like the luckiest girl in the whole world (because I am btw).</p>
+
+            <p>But ngl I've been also feeling lately a bit nostalgic (as maybe you've already noticed) and I think it's important to tell all this before the other part of the gift you might or might not be listening to it yet.</p>
+
+            <p>Oh babe, even tho my memory is shit I still remember your first "I love you" directed to me, I remember when you used to do comments about us/you liking me and god each and every time you did made me fall even deeper in love with you.</p>
+
+            <p>My pov at that time, I fell in love with you, I already liked you since the time you first confessed but I was with ykw sooo in my head you were just a dream of being able to escape with someone and be happy with that somebody that would love me the way you loved (because oh I know how loyal you were to your past couple and when you did  all the comments about her I couldn't help but think, god I want someone who would respect me this way(except for the "Only platonic? awh" joke smh)).</p>
+
+            <p>When you first confessed my heart literally dropped for a second and its beat got faster, I copied and pasted that message in my alt account chat because I loved how my heart would do that whenever I read it and I was scared you'd just regret and delete it because of the embarrassment.</p>
+
+            <p>Still, our relationship couldn't happen because of both sides were kinda into something problematic so I first decided to let it in that mental cage where it first was and I even didn't tell ykw because I had faith everything would stop and you'd stop liking me and maybe I'd gain feelings for him again but oh how wrong I was, my feelings for you grew so much and I told him my feelings, he instantly knew who I catched feelings for.</p>
+
+            <p>After that you'd still feel uncomfortable when you'd see us talking and you'd ask for us to stop acting like a couple (even if we weren't that at the time), that honestly broke my heart not because of the petition but because of how cold you'd turn which made a contrast after you acted romantic with me even if we weren't a couple, in that moment I knew I wouldn't be able to live without your love once I've tasted it.</p>
+
+            <p>Anyways I'll reach the main point, I'd try to get to know you better and to be closer to you each time, I searched Persona and watched the Persona 3 Reload ending 😭😭😭 I cried so much btw and I listened the song, song that kinda would make me think of you, not only because of Persona and our first match lol but also because you were my savior, at that moment I was so scared of you leaving my life, I cried when you left discord and we were nothing so I knew you could just leave and be happy, and deep down it's what I wanted because I thought you wouldn't be able to be happy with me after what you've told me.</p>
+            
+   <p>All I have left to say at this point is thank you, not only for showing me I could indeed be happy loving someone but also for giving a chance after everything you've gone through, I really really want to make you the happiest man in the world and I'll give my best to achieve it.</p>
+   
+   <p>Maybe you aren't aware of how much of a change you did because I never told you much about it when we were friends but I used to cry literally daily before getting to know you better, you'd somehow make me feel relieved, now you being my boyfriend makes me feel even better.</p>
+   
+   <p>You're the only one that has make me want to live the moment because you make my present the most valuable moment, you make it worth it, without much more to say, just please accept my thank you not only for how much you'd help me and for this chance you gave me but also for being such an incredible man and the best boyfriend ever. I really really really love you with all my heart ❤️.</p>
+            
+            <p>To the love of my life, happy first 6 months and let's go for more!</p>
+
+            <p><strong>Always yours, Dulce 💕</strong></p>
+
+            <p><em>P.D. I'm not the best singer but I did it with love for you, I was kinda indecisive on when to do it (I planned it more for your b-day or the year anniversary) but I got the chance to record and give so here it is!</em></p>
+        </div>
+
+        <div class="controles-carta">
+            <div class="seccion-audio">
+                <div class="controles-audio">
+                    <button class="boton-audio" id="botonPlayPause">
+                        🎵 Play Surprise! :3c
+                    </button>
+                </div>
+                <div class="barra-tiempo-contenedor">
+                    <span class="tiempo-actual" id="tiempoActual">0:00</span>
+                    <input type="range" class="barra-tiempo" id="barraTiempo" value="0" min="0" step="0.1">
+                    <span class="duracion-total" id="duracionTotal">0:00</span>
+                </div>
+                <div class="control-volumen">
+                    <label for="volumenSlider">🔊</label>
+                    <input type="range" class="volumen-slider" id="volumenSlider" min="0" max="1" step="0.05"
+                        value="1">
+                </div>
+                <div class="estado-audio" id="estadoAudio">
+                    Press the button to listen to your surprise 🎶
+                </div>
+            </div>
+
+            <button class="boton-cerrar" id="botonCerrar">
+                ✉️ Close Letter
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Variables principales
+        const elementos = {
+            contenedorPrincipal: document.getElementById('contenedorPrincipal'),
+            sobreContenedor: document.getElementById('sobreContenedor'),
+            sello: document.getElementById('sello'),
+            cartaContenedor: document.getElementById('cartaContenedor'),
+            textoInstruccion: document.getElementById('textoInstruccion'),
+            botonPlayPause: document.getElementById('botonPlayPause'), // Un solo botón para Play/Pause/Resume
+            botonCerrar: document.getElementById('botonCerrar'),
+            estadoAudio: document.getElementById('estadoAudio'),
+            barraTiempo: document.getElementById('barraTiempo'),
+            tiempoActual: document.getElementById('tiempoActual'),
+            duracionTotal: document.getElementById('duracionTotal'),
+            volumenSlider: document.getElementById('volumenSlider')
+        };
+
+        let estado = {
+            cartaAbierta: false,
+            audioContext: null,
+            audioBuffer: null,
+            audioSource: null,
+            gainNode: null, // Nodo para controlar el volumen
+            reproduciendo: false,
+            pausado: false,
+            // Variables para el control de tiempo
+            startTime: 0, // Tiempo en que se inició la reproducción (AudioContext.currentTime)
+            pausedAt: 0, // Tiempo en que se pausó la reproducción (en segundos del audio)
+            animationFrameId: null // Para el bucle de actualización de la barra de tiempo
+        };
+
+        const audioUrl = 'audio.mp3'; // Asegúrate de que esta ruta sea correcta
+
+        // --- Funciones de Utilidad ---
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `: ''`;
+        }
+
+        function actualizarEstadoAudio(mensaje, tipo = 'normal') {
+            elementos.estadoAudio.textContent = mensaje;
+            elementos.estadoAudio.className = `estado-audio `;
+        }
+
+        function updatePlayPauseButton() {
+            if (estado.reproduciendo) {
+                elementos.botonPlayPause.textContent = '⏸️ Pause';
+                elementos.botonPlayPause.classList.remove('play');
+                elementos.botonPlayPause.classList.add('pause');
+            } else if (estado.pausado) {
+                elementos.botonPlayPause.textContent = '▶️ Play';
+                elementos.botonPlayPause.classList.remove('pause');
+                elementos.botonPlayPause.classList.add('play');
+            } else {
+                elementos.botonPlayPause.textContent = '🎵 Play Surprise! :3c';
+                elementos.botonPlayPause.classList.remove('pause', 'play');
+            }
+            elementos.botonPlayPause.disabled = false;
+        }
+
+        // --- Funciones de Audio ---
+        async function inicializarAudio() {
+            try {
+                if (!estado.audioContext) {
+                    estado.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    console.log('AudioContext done.');
+
+                    // Crear GainNode para control de volumen
+                    estado.gainNode = estado.audioContext.createGain();
+                    estado.gainNode.connect(estado.audioContext.destination);
+                    estado.gainNode.gain.value = elementos.volumenSlider.value; // Establecer volumen inicial
+                }
+
+                if (estado.audioContext.state === 'suspended') {
+                    console.log('AudioContext suspended, trying to play...');
+                    await estado.audioContext.resume();
+                    console.log('AudioContext playing.');
+                }
+
+                if (!estado.audioBuffer) {
+                    actualizarEstadoAudio('⏳  Loading..', 'normal');
+                    console.log('Beginning to play...');
+
+                    const response = await fetch(audioUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: `);
+                    }
+                    const arrayBuffer = await response.arrayBuffer();
+                    estado.audioBuffer = await estado.audioContext.decodeAudioData(arrayBuffer);
+
+                    elementos.barraTiempo.max = estado.audioBuffer.duration;
+                    elementos.duracionTotal.textContent = formatTime(estado.audioBuffer.duration);
+                    actualizarEstadoAudio('✅  Audio ready to play!', 'success');
+                    console.log('Audio loaded!.');
+                }
+                return true; // Indica que la inicialización fue exitosa
+            } catch (error) {
+                console.error('Error loading or playing audio', error);
+                actualizarEstadoAudio('❌ Error loading audio', 'error');
+                elementos.botonPlayPause.disabled = true; // Deshabilitar botón si hay error
+                return false; // Indica que hubo un error
+            }
+        }
+
+        function playAudio(offset = 0) {
+            // Detener reproducción anterior si existe
+            if (estado.audioSource) {
+                estado.audioSource.stop();
+                estado.audioSource.disconnect();
+            }
+
+            estado.audioSource = estado.audioContext.createBufferSource();
+            estado.audioSource.buffer = estado.audioBuffer;
+            estado.audioSource.connect(estado.gainNode); // Conectar al GainNode para el volumen
+
+            estado.audioSource.onended = () => {
+                if (estado.reproduciendo) { // Solo si terminó de forma natural, no por stop manual
+                    estado.reproduciendo = false;
+                    estado.pausado = false;
+                    estado.pausedAt = 0; // Resetear el tiempo pausado
+                    updatePlayPauseButton();
+                    actualizarEstadoAudio('✅  Successfully played!', 'success');
+                    elementos.barraTiempo.value = 0;
+                    elementos.tiempoActual.textContent = formatTime(0);
+                    cancelAnimationFrame(estado.animationFrameId); // Detener actualización de la barra
+                    console.log('End of the audio! :3c.');
+                }
+            };
+
+            estado.startTime = estado.audioContext.currentTime - offset;
+            estado.audioSource.start(0, offset); // Iniciar desde el offset
+            estado.reproduciendo = true;
+            estado.pausado = false; // Ya no está pausado, está reproduciendo
+            updatePlayPauseButton();
+            actualizarEstadoAudio('🎵 Already playing...', 'success');
+            console.log(`Audio playing from second: `);
+            updateSeekBar(); // Iniciar la actualización de la barra de tiempo
+        }
+
+        function pauseAudio() {
+            if (estado.audioSource && estado.reproduciendo) {
+                estado.audioSource.stop(); // Detiene el audio
+                estado.pausedAt = estado.audioContext.currentTime - estado.startTime; // Guardar el tiempo actual
+                estado.reproduciendo = false;
+                estado.pausado = true; // Establecer estado a pausado
+                updatePlayPauseButton();
+                actualizarEstadoAudio('⏸️ Paused', 'normal');
+                cancelAnimationFrame(estado.animationFrameId); // Detener actualización de la barra
+                console.log(`Audio paused at second: `);
+            }
+        }
+
+        function togglePlayPause() {
+            if (!estado.audioBuffer) {
+                // Si el audio no está cargado, intenta inicializar y luego reproducir
+                inicializarAudio().then(success => {
+                    if (success) {
+                        playAudio();
+                    }
+                });
+            } else if (estado.reproduciendo) {
+                pauseAudio();
+            } else { // No está reproduciendo, puede estar pausado o no iniciado
+                playAudio(estado.pausedAt); // Reanudar desde el tiempo pausado
+            }
+        }
+
+        function detenerAudio() {
+            if (estado.audioSource) {
+                estado.audioSource.stop();
+                estado.audioSource.disconnect();
+                estado.audioSource = null;
+            }
+            estado.reproduciendo = false;
+            estado.pausado = false;
+            estado.pausedAt = 0; // Resetear la posición de reproducción
+            updatePlayPauseButton();
+            actualizarEstadoAudio(' Press to listen your surprise 🎶', 'normal');
+            elementos.barraTiempo.value = 0;
+            elementos.tiempoActual.textContent = formatTime(0);
+            cancelAnimationFrame(estado.animationFrameId); // Detener actualización
+            console.log('Audio completly stopped.');
+        }
+
+        // --- Actualización de la barra de tiempo ---
+        function updateSeekBar() {
+            const currentTime = estado.reproduciendo ?
+                estado.audioContext.currentTime - estado.startTime :
+                estado.pausedAt;
+
+            elementos.barraTiempo.value = currentTime;
+            elementos.tiempoActual.textContent = formatTime(currentTime);
+
+            // Actualizar el color de la barra de progreso
+            const progress = (currentTime / estado.audioBuffer.duration) * 100;
+            elementos.barraTiempo.style.background = `linear-gradient(to right, #f48fb1 %, #e0e0e0 %)`;
+
+
+            if (estado.reproduciendo) {
+                estado.animationFrameId = requestAnimationFrame(updateSeekBar);
+            }
+        }
+
+        // --- Event Handlers ---
+        // Función para abrir la carta
+        function abrirCarta(evento) {
+            if (evento) {
+                evento.preventDefault();
+                evento.stopPropagation();
+            }
+
+            if (estado.cartaAbierta) return;
+
+            console.log('🎯 Opening Letter...');
+            estado.cartaAbierta = true;
+
+            // Ocultar instrucciones y animar sello
+            elementos.textoInstruccion.classList.add('hidden');
+            elementos.sello.classList.add('open');
+
+            // Mostrar carta después de la animación del sello
+            setTimeout(() => {
+                elementos.sobreContenedor.classList.add('hidden');
+                elementos.cartaContenedor.classList.add('visible');
+
+                // Pre-inicializar audio, pero no reproducir automáticamente
+                inicializarAudio();
+
+            }, 300);
+        }
+
+        // Función para cerrar la carta
+        function cerrarCarta() {
+            console.log('🎯 Closing Letter...');
+
+            detenerAudio(); // Asegura que el audio se detenga al cerrar la carta
+
+            elementos.cartaContenedor.classList.remove('visible');
+
+            setTimeout(() => {
+                elementos.sobreContenedor.classList.remove('hidden');
+                elementos.sello.classList.remove('open');
+                estado.cartaAbierta = false;
+                elementos.textoInstruccion.classList.remove('hidden');
+            }, 400); // Ajustado el tiempo para que coincida con la transición de la carta
+        }
+
+
+        // Event Listeners mejorados para móvil (touchend) y escritorio (click)
+        elementos.contenedorPrincipal.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            abrirCarta(e);
+        }, {
+            passive: false
+        });
+
+        elementos.contenedorPrincipal.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            abrirCarta(e);
+        });
+
+        // Evento para el botón de Play/Pause/Resume
+        elementos.botonPlayPause.addEventListener('click', togglePlayPause);
+        elementos.botonPlayPause.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            togglePlayPause();
+        }, {
+            passive: false
+        });
+
+        // Evento para la barra de tiempo (al soltar el dedo/ratón)
+        elementos.barraTiempo.addEventListener('change', (e) => {
+            const seekTime = parseFloat(e.target.value);
+            if (estado.audioBuffer && estado.audioContext) {
+                if (estado.reproduciendo) {
+                    playAudio(seekTime); // Reiniciar reproducción desde la nueva posición
+                } else {
+                    estado.pausedAt = seekTime; // Si está pausado, solo actualiza la posición guardada
+                    elementos.tiempoActual.textContent = formatTime(seekTime); // Y actualiza el tiempo mostrado
+                }
+            }
+        });
+
+        // Evento para la barra de tiempo (mientras se arrastra)
+        elementos.barraTiempo.addEventListener('input', (e) => {
+            // Esto es para actualizar el tiempo mientras el usuario arrastra la barra
+            elementos.tiempoActual.textContent = formatTime(parseFloat(e.target.value));
+            const progress = (parseFloat(e.target.value) / estado.audioBuffer.duration) * 100;
+            elementos.barraTiempo.style.background = `linear-gradient(to right, #f48fb1 %, #e0e0e0 %)`;
+        });
+
+
+        // Evento para el slider de volumen
+        elementos.volumenSlider.addEventListener('input', (e) => {
+            if (estado.gainNode) {
+                estado.gainNode.gain.value = parseFloat(e.target.value);
+            }
+        });
+
+
+        elementos.botonCerrar.addEventListener('touchend', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            cerrarCarta();
+        }, {
+            passive: false
+        });
+
+        elementos.botonCerrar.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            cerrarCarta();
+        });
+
+        // Prevención de doble-tap zoom en iOS solo para el contenedor principal
+        let lastTouchEnd = 0;
+        elementos.contenedorPrincipal.addEventListener('touchend', function (event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) { // Si el segundo tap ocurre dentro de 300ms
+                event.preventDefault(); // Previene el zoom
+            }
+            lastTouchEnd = now;
+        }, {
+            passive: false
+        });
+
+        // Prevenir comportamientos no deseados en móviles (touchstart genérico)
+        document.addEventListener('touchstart', function () {}, {
+            passive: true
+        });
+
+        console.log('Letter Ready!.');
+    </script>
+</body>
+
+</html>
